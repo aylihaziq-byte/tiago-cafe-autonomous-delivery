@@ -1,59 +1,57 @@
 #!/usr/bin/env python3
 import rospy
 import cv2
-from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image
 from std_msgs.msg import String
+from cv_bridge import CvBridge, CvBridgeError
+from pyzbar import pyzbar
 
-class TiagoQrReader:
+class CafeQRScanner:
     def __init__(self):
+        rospy.init_node('cafe_qr_reader_node', anonymous=True)
         self.bridge = CvBridge()
-        self.detector = cv2.QRCodeDetector()
         
-        # Subscribe to TIAGo's live head camera RGB feed
-        self.image_sub = rospy.Subscriber("/xtion/rgb/image_raw", Image, self.image_callback)
+        # Publisher to notify your Tkinter UI system when a code is spotted
+        self.qr_pub = rospy.Publisher('/cafe_detected_qr', String, queue_size=10)
         
-        # Publish the decoded string to a dedicated ROS topic for full integration
-        self.qr_pub = rospy.Publisher("/cafe_detected_qr", String, queue_size=10)
-        
-        rospy.loginfo("==========================================")
-        rospy.loginfo("📸 ROS QR Reader Node Active & Listening...")
-        rospy.loginfo("==========================================")
+        # Subscribing to TIAGo's direct raw camera channel
+        self.image_sub = rospy.Subscriber('/xtion/rgb/image_raw', Image, self.image_callback)
+        rospy.loginfo("📸 QR Scanner Frame Initialized. Awaiting camera packets...")
 
     def image_callback(self, data):
         try:
-            # Convert the incoming raw ROS image frame into standard OpenCV BGR format
+            # Convert the raw ROS Image message into a standard OpenCV BGR frame
             cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
         except CvBridgeError as e:
             rospy.logerr(f"CvBridge Conversion Error: {e}")
             return
 
-        # Scan the frame for any valid QR array geometries
-        decoded_text, points, _ = self.detector.detectAndDecode(cv_image)
-        
-        # If a QR code is detected and successfully read
-        if decoded_text:
-            rospy.loginfo(f"🟢 Successfully Scanned: Content = '{decoded_text}'")
+        # Scan the frame matrix for any physical QR codes
+        barcodes = pyzbar.decode(cv_image)
+        for barcode in barcodes:
+            qr_data = barcode.data.decode("utf-8")
+            rospy.loginfo(f"🏁 QR Detected: {qr_data}")
             
-            # Broadcast the string data across the ROS ecosystem
-            self.qr_pub.publish(decoded_text)
+            # Broadcast the string value to your state machine dashboard
+            self.qr_pub.publish(qr_data)
             
-            # Draw a green bounding box overlay around the code for your Task Demo video
-            if points is not None:
-                pts = points.astype(int)
-                for i in range(len(pts[0])):
-                    cv2.line(cv_image, tuple(pts[0][i]), tuple(pts[0][(i+1) % len(pts[0])]), (0, 255, 0), 3)
+            # Draw a green bounding frame rectangle over the target code on screen
+            (x, y, w, h) = barcode.rect
+            cv2.rectangle(cv_image, (x, y), (x + w, y + h), (0, 255, 0), 3)
+            cv2.putText(cv_image, qr_data, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
 
-        # Spawn a live display window showing what TIAGo is seeing
-        cv2.imshow("TIAGo Live Head Camera Scanner Feed", cv_image)
+        # 📺 MATCHING YOUR FRIEND'S SETUP (From image.png):
+        # This creates a native, floating graphical window displaying the camera stream
+        cv2.imshow("QR Scanner", cv_image)
+        
+        # Keeps the window stream refreshing smoothly at 1ms intervals
         cv2.waitKey(1)
 
 if __name__ == '__main__':
     try:
-        rospy.init_node('cafe_qr_reader_node', anonymous=True)
-        reader = TiagoQrReader()
+        scanner = CafeQRScanner()
         rospy.spin()
     except rospy.ROSInterruptException:
-        pass
+        rospy.loginfo("Shutting down camera tracking nodes.")
     finally:
         cv2.destroyAllWindows()
