@@ -1,8 +1,16 @@
+<<<<<<< HEAD
 
 
 #!/bin/bash
 
 # Fix for VirtualBox Gazebo camera rendering freeze bug
+=======
+#!/bin/bash
+
+# Fix for VirtualBox Gazebo camera rendering freeze bug
+export SVGA_VGPU10=0
+export LIBGL_ALWAYS_SOFTWARE=0
+>>>>>>> abbe373eb140528e3e3930a3de2e5e91690dd96e
 # 1. Clean up any stale or crashed background processes cleanly
 echo "=========================================="
 echo "🧹 1/5: Clearing out old simulation caches..."
@@ -15,6 +23,7 @@ echo "=========================================="
 echo "🚀 2/5: Launching TIAGo Café Navigation Simulation..."
 echo "=========================================="
 source ~/tiago_public_ws/devel/setup.bash
+<<<<<<< HEAD
 
 # Ensure Gazebo can find the custom café tables
 export GAZEBO_RESOURCE_PATH=~/tiago_public_ws/src/pal_gazebo_worlds:$GAZEBO_RESOURCE_PATH
@@ -22,6 +31,8 @@ export GAZEBO_RESOURCE_PATH=~/tiago_public_ws/src/pal_gazebo_worlds:$GAZEBO_RESO
 # Force VMware to use the stable OpenGL 3.3 profile for Gazebo 3D Cameras
 export SVGA_VGPU10=0
 
+=======
+>>>>>>> abbe373eb140528e3e3930a3de2e5e91690dd96e
 roslaunch tiago_2dnav_gazebo tiago_navigation.launch public_sim:=true world:=worldcafe arm:=false end_effector:=false map:=$HOME/.pal/tiago_maps/configurations/cafe_perfect lost:=true gzpose:="-x 0.164 -y 6.586 -z 0.1 -R 0.0 -P 0.0 -Y -1.513" &
 
 # 3. Wait for the simulation and RViz graphic window to fully load
@@ -45,12 +56,25 @@ rosrun gazebo_ros spawn_model -file ~/.gazebo/models/qr_table_1/model.sdf -sdf -
 sleep 0.5
 
 # 2. QR Table 2 placed at the Counter Zone
+<<<<<<< HEAD
 rosrun gazebo_ros spawn_model -file ~/.gazebo/models/qr_table_2/model.sdf -sdf -model qr_table_2_counter -x -4.146 -y 7.235 -z 1.523 -R 0.0 -P 0.0 -Y 1.628 &
 sleep 0.5
 
 # 3. QR Counter Zone placed at Table 1
 
 # 4. QR Counter Zone placed at Table 2
+=======
+rosrun gazebo_ros spawn_model -file ~/.gazebo/models/qr_table_2/model.sdf -sdf -model qr_table_2_counter -x -2.409 -y 7.335 -z 1.523 -R 0.0 -P 0.0 -Y 1.628 &
+sleep 0.5
+
+# 3. QR Counter Zone placed at Table 1
+rosrun gazebo_ros spawn_model -file ~/.gazebo/models/qr_counter_zone/model.sdf -sdf -model qr_counter_at_t1 -x 0.956 -y -1.422 -z 1.073 -R 0.0 -P 0.0 -Y 0.0 &
+sleep 0.5
+
+# 4. QR Counter Zone placed at Table 2
+rosrun gazebo_ros spawn_model -file ~/.gazebo/models/qr_counter_zone/model.sdf -sdf -model qr_counter_at_t2 -x -1.042 -y -5.525 -z 1.069 -R 0.0 -P 0.0 -Y 0.0 &
+sleep 1.0
+>>>>>>> abbe373eb140528e3e3930a3de2e5e91690dd96e
 
 # Streams a continuous 10Hz heartbeat message to execute the localization sweep
 echo "🔄 Executing intensive 1080-degree sensor convergence spin..."
@@ -65,8 +89,11 @@ sleep 1
 echo "=========================================="
 echo "📸 4.5/5: Initiating Vision Tracking Stack..."
 echo "=========================================="
+<<<<<<< HEAD
 python3 ~/tiago_public_ws/src/camera_injector.py &
 sleep 2
+=======
+>>>>>>> abbe373eb140528e3e3930a3de2e5e91690dd96e
 python3 ~/tiago_public_ws/src/cafe_qr_reader.py &
 sleep 1
 
